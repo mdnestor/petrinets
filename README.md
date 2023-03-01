@@ -4,21 +4,30 @@ Python implementation of Petri nets.
 
 ## Usage
 
-Define a Petri net as follows:
+The following example is the SIR epidemic model, modeled by the reaction network
+
+$$ S + I \to 2I $$
+
+$$ I \to R $$
+
+We can define the corresponding Petri net using the primary class `petrinet.PetriNet`:
 
 ```python
-# SIR model
+from petrinet import PetriNet
+S, I, R = "SIR"
+a, b = "ab"
 net = PetriNet(
-  species     = [0,1,2],
-  transitions = [0,1],
-  edges_in  = [(0,0), (1,0), (1,1)],
-  edges_out = [(0,1), (0,1), (1,2)]
+  species     = [S, I, R],
+  transitions = [a, b],
+  edges_in  = [(S,a), (I,a), (I,b)],
+  edges_out = [(I,a), (I,a), (R,b)]
 )
 ```
 
-Compute the time derivative using mass action kinetics:
+By assigning each reaction a rate, we can compute the time derivative using mass action kinetics:
 
 ```python
+from mass_action import time_dot
 time_dot(net, x=[1.0, 2.0, 3.0], rates=[1.0, 1.2])
 ```
 
@@ -29,8 +38,9 @@ from scipy.integrate import solve_ivp
 
 soln = solve_ivp(
   fun=lambda t, x: time_dot(net, x=x, rates=[2.0, 1.0]),
-  t_span = [0.0, 10.0],
-  y0 = [0.99, 0.01, 0.00],
+  t_span=[0.0, 10.0],
+  y0=[0.99, 0.01, 0.00],
+  method="RK45"
 )
 ```
 

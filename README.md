@@ -2,18 +2,22 @@
 
 Python implementation of Petri nets.
 
+The primary class is located in `petrinet.py` and mass action laws in `mass_action.py`. They are used in the following scripts:
+- `demo_ode.py` - as an ordinary differential equation,
+- `demo_sde.py` - as a stochastic differential equation,
+- `demo_pde.py` - as a reaction diffusion PDE.
+
 ## Usage
 
-The following example is the SIR epidemic model, modeled by the reaction network
+The following example is the SIR epidemic model corresponding to the reaction network
 
 $$ S + I \to 2I $$
 
 $$ I \to R $$
 
-We can define the corresponding Petri net using the primary class `petrinet.PetriNet`:
-
 ```python
 from petrinet import PetriNet
+
 S, I, R = "SIR"
 a, b = "ab"
 net = PetriNet(
@@ -28,13 +32,14 @@ By assigning each reaction a rate, we can compute the time derivative using mass
 
 ```python
 from mass_action import time_dot
-time_dot(net, x=[1.0, 2.0, 3.0], rates=[1.0, 1.2])
+x_dot = time_dot(net, x=[1.0, 2.0, 3.0], rates=[1.0, 1.2])
 ```
 
-Use ODE solvers such as scipy's solve_ivp:
+We can approximate a solution to the ODE using SciPy's solve_ivp, and plot the solution with Matplotlib.
 
 ```python
 from scipy.integrate import solve_ivp
+import matplotlib.pyplot as plt
 
 soln = solve_ivp(
   fun=lambda t, x: time_dot(net, x=x, rates=[2.0, 1.0]),
@@ -42,12 +47,7 @@ soln = solve_ivp(
   y0=[0.99, 0.01, 0.00],
   method="RK45"
 )
-```
 
-Plot the solution with matplotlib:
-
-```python
-import matplotlib.pyplot as plt
 for i in range(len(soln.y)):
   plt.plot(soln.t, soln.y[i], label=i)
 plt.legend()

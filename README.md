@@ -1,6 +1,6 @@
 # petrinets
 
-Python implementation of Petri nets
+Python implementation of Petri nets.
 
 ## Usage
 
@@ -16,10 +16,7 @@ net = PetriNet(
 )
 ```
 
-
-TODO: graph visualization
-
-Compute the time derivative of the corresponding ODE system:
+Compute the time derivative using mass action kinetics:
 
 ```python
 time_dot(net, x=[1.0, 2.0, 3.0], rates=[1.0, 1.2])
@@ -47,4 +44,4 @@ plt.legend()
 plt.show()
 ```
 
-![Time series plot of the SIR model](plot1.png)
+![Time series plot of the SIR model](figures/ode_demo.png)

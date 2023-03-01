@@ -2,21 +2,36 @@ from typing import List
 from petrinet import PetriNet
 import numpy as np
 
+def edge_count(edge_list, s, t) -> int:
+  return len([e for e in edge_list if e == (s,t)])
+
+def in_matrix(net: PetriNet):
+  return np.array([[edge_count(net.edges_in, s,t) for t in net.transitions] for s in net.species])
+
+def out_matrix(net: PetriNet):
+  return np.array([[edge_count(net.edges_out, s,t) for t in net.transitions] for s in net.species])
+
+def count_matrix(net: PetriNet):
+  return out_matrix(net) - in_matrix(net)
+
 def time_dot(net: PetriNet, x: List[float], rates: List[float]):
-    S = net.species
-    T = net.transitions
-    E_in  = net.edges_in
-    E_out = net.edges_out
-    k = rates
+  X = np.asarray(x)
+  k = np.asarray(rates)
+  E_in = in_matrix(net)
+  E_diff = count_matrix(net)
+  X = np.repeat(X[:,np.newaxis], len(net.transitions), axis=1)
+  Y = np.prod(X**E_in, axis=0)
+  return np.sum(k * Y * E_diff , axis=1)
 
-    S_idx = {s: i for (i, s) in enumerate(S)}
-    T_idx = {t: i for (i, t) in enumerate(T)}
-    
-    terms = np.array([k[T_idx[t0]] * np.prod([x[(S_idx[s])] for (s,t) in E_in if t == t0]) for t0 in T])
+if __name__ == "__main__":
+  S, I, R = "SIR"
+  a, b = "ab"
+  
+  net = PetriNet(
+    species=[S, I, R],
+    transitions=[a, b],
+    edges_in =[(S,a),(I,a),(I,b)],
+    edges_out=[(I,a),(R,b)]
+  )
 
-    count_in_list = lambda S, x: len([y for y in S if x == y])
-    count = lambda s, t: count_in_list(E_out, (t, s)) - count_in_list(E_in, (s, t))
-
-    D = np.array([[count(s, t) for s in S] for t in T])
-    x_dot = np.transpose(D) @ terms
-    return x_dot.tolist()
+  print(time_dot(net, x=[2,3,5], rates=[2,1]))
